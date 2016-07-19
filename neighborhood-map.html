@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--<link rel="stylesheet" href="css/vendor/bootstrap.min.css">-->
+    <link rel="stylesheet" href="css/neighborhood-styles.css">
+    <title>Neighborhood Map</title>
+</head>
+<body>
+<div class="container" id="map">
+</div>
+<div id="search-container">
+    <div id="search-nav">
+        <input id="searchBox" placeholder="Search…" type="input"  data-bind="textInput: filter, valueUpdate: 'keydown'" autocomplete="off"></input>
+        <div id="scroller">
+            <ul data-bind="foreach: locations">
+                <div data-bind="visible: visible">
+                    <a href="#" class="location-detail" data-bind="attr: {id: id}">
+                        <li class="location-list">
+                            <strong data-bind="text: title"></strong>
+                            <p data-bind="text: addr1"></p>
+                            <p data-bind="text: addr2"></p>
+                        </li>
+                    </a>
+                </div>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+<script src="js/vendor/jquery-1.11.3.min.js"></script>
+<!--<script src="js/vendor/bootstrap.min.js"></script>-->
+<script src="js/vendor/knockout-3.2.0.js"></script>
+<script src="js/neighborhood-map.js"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBr_5B5VWmOcTUGxJsi6DEPxxFot45jAvw&v=3&libraries=geometry&callback=initMap"></script>
+
+</body>
+</html>
