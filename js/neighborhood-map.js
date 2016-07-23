@@ -1,6 +1,7 @@
 'use strict';
 
 
+
 // declare global map and map markers
 var map;
 // var mapMarkers = [];
@@ -67,6 +68,58 @@ var locations = [{
     id: "nav5"
 }];
 
+var viewModel = function() {
+    var self = this;
+
+    self.filter = ko.observable('');
+
+    // filter and show locations according to search box
+    self.locations = ko.computed(function() {
+        var search = self.filter().toLowerCase();
+        locations.forEach(function(location) {
+            if (location.title.toLowerCase().indexOf(search) >= 0 || location.addr1.toLowerCase().indexOf(search) >= 0 || location.addr2.toLowerCase().indexOf(search) >= 0) {
+                location.visible(true);
+                if (location.marker) {
+                    location.marker.setMap(map);
+                }
+
+            } else {
+                location.visible(false);
+                if (location.marker) {
+                    location.marker.setMap(null);
+                }
+            }
+        });
+        return locations;
+    });
+
+    // on clicking the list item, open marker for it
+    self.listItemClick = function() {
+        populateInfoWindow(this.marker, this.infoWindow);
+    };
+
+    // Toggle the list view on clicking the little menu icon
+    self.toggleList = function() {
+        if ($('.toggle-menu').css('left') === '280px') {
+            $('.toggle-menu').animate({
+                left: '0'
+            });
+            $('#search-container').animate({
+                left: '-280px'
+            });
+        } else {
+            $('.toggle-menu').animate({
+                left: '280px'
+            });
+            $('#search-container').animate({
+                left: '0px'
+            });
+        }
+    };
+
+};
+
+
 /**
  * Initialize map
  */
@@ -86,14 +139,7 @@ function initMap() {
     map = new google.maps.Map(document.getElementById('map'), mapOptions);
 
     setUpMarkers();
-
-    // Resize map on resizing window
-    google.maps.event.addDomListener(window, "resize", function() {
-        var center = map.getCenter();
-        google.maps.event.trigger(map, "resize");
-        map.setCenter(center);
-    });
-
+    ko.applyBindings(new viewModel());
 
 }
 
@@ -131,7 +177,6 @@ function setUpMarkers() {
             icon: markerIcon
         });
         var currentMarker = locations[i].marker;
-        // mapMarkers.push(marker);
         bounds.extend(currentMarker.position);
         currentMarker.addListener('click', function() {
             populateInfoWindow(this, largeInfowindow);
@@ -140,6 +185,11 @@ function setUpMarkers() {
     }
     // Extend the boundaries of the map for each marker
     map.fitBounds(bounds);
+
+    // Add event listener for resize and update map bounds to fit the markers
+    window.onresize = function() {
+        map.fitBounds(bounds);
+    };
 
 }
 
@@ -175,6 +225,12 @@ function populateInfoWindow(marker, infowindow) {
     if (infowindow.marker != marker) {
         // pan to the position of the marker
         offsetCenter(marker.getPosition(), 0, -70);
+        // bounce the map marker
+        marker.setAnimation(google.maps.Animation.BOUNCE);
+        // set a timeout for the map marker to stop bouncing after 2 seconds
+        setTimeout(function() {
+            marker.setAnimation(google.maps.Animation.null);
+        }, 2000);
         // Clear the infowindow content to give the streetview time to load.
         infowindow.setContent('');
         infowindow.marker = marker;
@@ -203,10 +259,10 @@ function populateInfoWindow(marker, infowindow) {
                     '<h5>Relevant Wikipedia Links about this location </h5>' + '<ul class="wikipedia-links">';
 
                 $.ajax({
-                    url: wikiUrl,
-                    dataType: "jsonp",
-                    async: false,
-                    success: function(response) {
+                        url: wikiUrl,
+                        dataType: "jsonp"
+                    })
+                    .done(function(response) {
                         var articleList = response[1];
 
                         for (var i = 0; i < Math.min(articleList.length, 4); i++) {
@@ -222,15 +278,12 @@ function populateInfoWindow(marker, infowindow) {
                         $('#wikipedia').append(contentString);
 
 
-                    },
-                    error: function(resp) {
-                        console.log("error: " + resp);
+                    }).fail(function(jqXHR, textStatus) {
+                        console.log("Error getting info from wikipedia: " + textStatus);
                         contentString = 'Could not get wikipedia links for: ' + marker.title;
                         $('#wikipedia').append(contentString);
 
-                    }
-
-                });
+                    });
                 var panoramaOptions = {
                     position: nearStreetViewLocation,
                     pov: {
@@ -239,12 +292,12 @@ function populateInfoWindow(marker, infowindow) {
                     }
                 };
                 // if streetview image is found, create a panorama and put it in the div with id pano
-                // else say no streetview found
+                // else put in error message
                 var panorama = new google.maps.StreetViewPanorama(
                     document.getElementById('pano'), panoramaOptions);
             } else {
                 infowindow.setContent('<div>' + marker.title + '</div>' +
-                    '<div>No Street View Found</div>');
+                    '<div>Request to Google places to get streetview failed :-/</div>');
             }
         };
         // Use streetview service to get the closest streetview image within
@@ -256,59 +309,10 @@ function populateInfoWindow(marker, infowindow) {
     }
 }
 
-
-
-var viewModel = function() {
-    var self = this;
-
-    self.filter = ko.observable('');
-
-    // filter and show locations according to search box
-    self.locations = ko.computed(function() {
-        var search = self.filter().toLowerCase();
-        locations.forEach(function(location) {
-            if (location.title.toLowerCase().indexOf(search) >= 0 || location.addr1.toLowerCase().indexOf(search) >= 0 || location.addr2.toLowerCase().indexOf(search) >= 0) {
-                location.visible(true);
-                if (location.marker) {
-                    location.marker.setMap(map);
-                }
-
-            } else {
-                location.visible(false);
-                if (location.marker) {
-                    location.marker.setMap(null);
-                }
-            }
-        });
-        return locations;
-    });
-
-    // on clicking the list item, open marker for it
-    self.listItemClick = function() {
-        populateInfoWindow(this.marker, this.infoWindow);
-    };
-
-    self.toggleList = function() {
-        console.log('toggle list clicked');
-
-        // Is the list view open?
-        if ($('.toggle-menu').css('left') === '280px') {
-            $('.toggle-menu').animate({
-                left: '0'
-            });
-            $('#search-container').animate({
-                left: '-280px'
-            });
-        } else {
-            $('.toggle-menu').animate({
-                left: '280px'
-            });
-            $('#search-container').animate({
-                left: '0px'
-            });
-        }
-    };
-
-};
-
-ko.applyBindings(new viewModel());
+// on google API error display error message
+function googleError() {
+    $('#search-container').hide();
+    $('#toggle-list').hide();
+    $('#map').addClass('google-error');
+    $('#map').html('<h1>Could not connect and get map from google API, please try again later</h1>');
+}

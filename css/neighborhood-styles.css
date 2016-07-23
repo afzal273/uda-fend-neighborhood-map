@@ -3,12 +3,12 @@
 }
 
 *:visited {
-    color: #7D7D7D
+    color: #7d7d7d;
 }
 
 body {
-    background-color: #CCC;
-    color: #7D7D7D;
+    background-color: #ccc;
+    color: #7d7d7d;
 }
 
 html,
@@ -44,13 +44,13 @@ li {
 }
 
 .location-list:hover {
-    background-color: #7D7D7D;
+    background-color: #7d7d7d;
     color: white;
 }
 
 a {
     text-decoration: none;
-    color: #7D7D7D;
+    color: #7d7d7d;
 }
 
 #map {
@@ -72,10 +72,10 @@ a {
     height: 35px;
     font-size: 17px;
     font-family: helvetica, sans-serif;
-    color: #9D9D9D;
+    color: #9d9d9d;
     border: none;
-    box-shadow: 2px 2px 5px #9D9D9D;
-    -webkit-box-shadow: 2px 2px 5px #9D9D9D;
+    box-shadow: 2px 2px 5px #9d9d9d;
+    -webkit-box-shadow: 2px 2px 5px #9d9d9d;
     outline: none;
 }
 
@@ -109,10 +109,15 @@ a {
     left: 280px;
 }
 
+.google-error {
+    text-align: center;
+}
+
 @media screen and (max-width: 730px) {
     #search-container {
         left: -280px;
     }
+
     .toggle-menu {
         left: 0;
     }

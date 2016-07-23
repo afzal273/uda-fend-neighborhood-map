@@ -27,6 +27,9 @@ module.exports = function(grunt) {
         //lint html
         htmllint: {
             all: "*.html"
+        },
+        cssbeautifier : {
+            files : ["css/neighborhood-styles.css"]
         }
     });
     grunt.registerTask('default', [ 'htmllint', 'jshint', 'csslint', 'jsbeautifier']);

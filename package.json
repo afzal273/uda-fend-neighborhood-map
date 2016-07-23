@@ -12,6 +12,7 @@
     "grunt": "^1.0.1",
     "grunt-contrib-csslint": "^1.0.0",
     "grunt-contrib-jshint": "^1.0.0",
+    "grunt-cssbeautifier": "^0.1.2",
     "grunt-html": "^8.0.2",
     "grunt-jsbeautifier": "^0.2.13",
     "load-grunt-tasks": "^3.5.0"
