@@ -4,7 +4,7 @@ module.exports = function(grunt) {
     grunt.initConfig({
 
         jsbeautifier: {
-            src: ['js/neighborhood-map.js', 'css/neighborhood-styles.css']
+            src: ['js/neighborhood-map.js', 'css/neighborhood-styles.css', 'neighborhood-map.html']
 
         },
         jshint: {
@@ -23,8 +23,12 @@ module.exports = function(grunt) {
         },
         csslint: {
             all: ['css/neighborhood-styles.css']
+        },
+        //lint html
+        htmllint: {
+            all: "*.html"
         }
     });
-    grunt.registerTask('default', [ 'jshint', 'csslint', 'jsbeautifier']);
+    grunt.registerTask('default', [ 'htmllint', 'jshint', 'csslint', 'jsbeautifier']);
 
 };

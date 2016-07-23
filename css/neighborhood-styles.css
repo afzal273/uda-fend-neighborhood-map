@@ -74,6 +74,7 @@ a {
     font-family: helvetica, sans-serif;
     color: #9D9D9D;
     border: none;
+    box-shadow: 2px 2px 5px #9D9D9D;
     -webkit-box-shadow: 2px 2px 5px #9D9D9D;
     outline: none;
 }
@@ -81,6 +82,7 @@ a {
 #search-container {
     position: absolute;
     z-index: 2;
+    /*display: none;*/
 }
 
 #search-nav {
@@ -99,4 +101,19 @@ a {
 
 .title {
     font-weight: bold;
+}
+
+.toggle-menu {
+    position: absolute;
+    z-index: 13;
+    left: 280px;
+}
+
+@media screen and (max-width: 730px) {
+    #search-container {
+        left: -280px;
+    }
+    .toggle-menu {
+        left: 0;
+    }
 }
