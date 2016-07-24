@@ -2,8 +2,9 @@
 
 
 
-// declare global map and locations objects
+// declare global map and map markers
 var map;
+// var mapMarkers = [];
 
 var locations = [{
     title: 'Alviso Marina County Park',
@@ -14,8 +15,7 @@ var locations = [{
     addr1: '1195 Hope St',
     addr2: 'San Jose CA 95002',
     visible: ko.observable(true),
-    wikiContent: ko.observable(''),
-    streetViewError: ko.observable(false)
+    id: "nav0"
 }, {
     title: 'Don Edwards San Francisco Bay National Wildlife Refuge',
     location: {
@@ -25,8 +25,7 @@ var locations = [{
     addr1: '2 Marshlands Rd',
     addr2: ' Fremont CA 94555',
     visible: ko.observable(true),
-    wikiContent: ko.observable('hello'),
-    streetViewError: ko.observable(false)
+    id: "nav1"
 }, {
     title: 'Shoreline Park',
     location: {
@@ -36,8 +35,7 @@ var locations = [{
     addr1: '3070 N Shoreline Blvd',
     addr2: ' Mountain View CA 94043',
     visible: ko.observable(true),
-    wikiContent: ko.observable(''),
-    streetViewError: ko.observable(false)
+    id: "nav2"
 }, {
     title: 'Rose Garden',
     location: {
@@ -47,8 +45,7 @@ var locations = [{
     addr1: 'Dana Ave',
     addr2: 'San Jose CA 95112',
     visible: ko.observable(true),
-    wikiContent: ko.observable(''),
-    streetViewError: ko.observable(false)
+    id: "nav3"
 }, {
     title: 'Kelley Park',
     location: {
@@ -58,8 +55,7 @@ var locations = [{
     addr1: '1300 Senter Rd',
     addr2: 'San Jose CA 95112',
     visible: ko.observable(true),
-    wikiContent: ko.observable(''),
-    streetViewError: ko.observable(false)
+    id: "nav4"
 }, {
     title: 'Ed Levin County Park',
     location: {
@@ -69,17 +65,13 @@ var locations = [{
     addr1: '3100 Calaveras Rd',
     addr2: 'Milpitas CA 95035',
     visible: ko.observable(true),
-    wikiContent: ko.observable(''),
-    streetViewError: ko.observable(false)
+    id: "nav5"
 }];
 
-function ViewModel() {
+var viewModel = function() {
     var self = this;
 
     self.filter = ko.observable('');
-    self.currentMapMarker = ko.observable();
-    self.infoWindow = ko.observable('');
-
 
     // filter and show locations according to search box
     self.locations = ko.computed(function() {
@@ -102,86 +94,9 @@ function ViewModel() {
     });
 
     // on clicking the list item, open marker for it
-    // self.listItemClick = function() {
-    //     populateInfoWindow(this.marker, this.infoWindow);
-    // };
-
-    self.openInfoWindow = function (location) {
-        self.currentMapMarker(location);
-        // has info window already been set
-        if (self.infoWindow() !== '') {
-            self.infoWindow().close(); // close the infoWindow
-        }
-
-        self.infoWindow(
-            new google.maps.InfoWindow({
-                content: $('#info-window-template').html(),
-                maxWidth: 800,
-                // disableAutoPan: true
-            })
-        );
-
-        var marker = self.currentMapMarker().marker;
-        var infowindow = self.infoWindow();
-
-        // pan to the position of the marker
-        offsetCenter(marker.getPosition(), 0, -70);
-        // bounce the map marker
-        marker.setAnimation(google.maps.Animation.BOUNCE);
-        // set a timeout for the map marker to stop bouncing after 2 times
-        // each bounce takes 700ms
-
-        // Clear the infowindow content to give the streetview time to load.
-        // infowindow.setContent('');
-        infowindow.marker = marker;
-        // Make sure the marker property is cleared if the infowindow is closed.
-        infowindow.addListener('closeclick', function() {
-            infowindow.marker = null;
-        });
-
-        setTimeout(function() {
-            marker.setAnimation(google.maps.Animation.null);
-        }, 2 * 700);
-
-        var streetViewService = new google.maps.StreetViewService();
-        var radius = 500;
-        // In case the status is OK, which means the pano was found, compute the
-        // position of the streetview image, then calculate the heading, then get a
-        // panorama from that and set the options
-        var _getStreetView = function(data, status) {
-            if (status === google.maps.StreetViewStatus.OK) {
-                var nearStreetViewLocation = data.location.latLng;
-                var heading = google.maps.geometry.spherical.computeHeading(
-                    nearStreetViewLocation, marker.position);
-
-                var panoramaOptions = {
-                    position: nearStreetViewLocation,
-                    pov: {
-                        heading: heading,
-                        pitch: 30 // will have us looking slightly up at the building
-                    }
-                };
-                // if streetview image is found, create a panorama and put it in the div with id pano
-                // else put in error message
-                var panorama = new google.maps.StreetViewPanorama(
-                    document.getElementById('pano'), panoramaOptions);
-                location.streetViewError(false);
-            } else {
-                location.streetViewError(true);
-            }
-        };
-        // Use streetview service to get the closest streetview image within
-        // 50 meters of the markers position
-        // get streetview is the callback to getpanoramabylocation
-        streetViewService.getPanoramaByLocation(marker.position, radius, _getStreetView);
-        // Open the infowindow on the correct marker.
-        // infowindow.open(map, marker);
-        self.infoWindow().setContent($('#info-window-template').html());
-        // open the info window
-        self.infoWindow().open(map, marker);
-
+    self.listItemClick = function() {
+        populateInfoWindow(this.marker, this.infoWindow);
     };
-
 
     // Toggle the list view on clicking the little menu icon
     self.toggleList = function() {
@@ -202,7 +117,7 @@ function ViewModel() {
         }
     };
 
-}
+};
 
 
 /**
@@ -224,8 +139,7 @@ function initMap() {
     map = new google.maps.Map(document.getElementById('map'), mapOptions);
 
     setUpMarkers();
-    window.vm = new ViewModel();
-    ko.applyBindings(vm);
+    ko.applyBindings(new viewModel());
 
 }
 
@@ -252,66 +166,22 @@ function setUpMarkers() {
 
     // Use location array to create an array of map Markers on initialize
     for (var i = 0; i < locations.length; i++) {
-        var currentLocation = locations[i];
-        var position = currentLocation.location;
-        var title = currentLocation.title;
-
-        currentLocation.infoWindow = largeInfowindow;
-        currentLocation.marker = new google.maps.Marker({
+        var position = locations[i].location;
+        var title = locations[i].title;
+        locations[i].infoWindow = largeInfowindow;
+        locations[i].marker = new google.maps.Marker({
             map: map,
             position: position,
             title: title,
             animation: google.maps.Animation.DROP,
             icon: markerIcon
         });
-        var currentMarker = currentLocation.marker;
+        var currentMarker = locations[i].marker;
         bounds.extend(currentMarker.position);
-
-        var _setWikiLinks = function (currentLocation) {
-
-            //Wikipedia links
-            var wikiUrl = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' + title +
-                '&format=json&callback=wikiCallback';
-            // do an ajax request and wiki links for the city to display in infowindow
-            var contentString = '<div class="wikipedia-container">' +
-                '<h5>Relevant Wikipedia Links about this location </h5>' + '<ul class="wikipedia-links">';
-
-            $.ajax({
-                url: wikiUrl,
-                dataType: "jsonp"
-            })
-            .done(function (response) {
-                var articleList = response[1];
-
-                for (var i = 0; i < Math.min(articleList.length, 4); i++) {
-                    var articleStr = articleList[i];
-                    var url = 'http://en.wikipedia.org/wiki/' + articleStr;
-                    contentString += '<li><a class="wikipedia-links text-center" target="_blank" href="' + url + '">' + articleStr + '</a></li>';
-                }
-                contentString += '</ul></div>';
-
-                // infoWindows are the little helper windows that open when you click
-                // or hover over a pin on a map. They usually contain more information
-                // about a location.
-                currentLocation.wikiContent = contentString;
-
-                }).fail(function (jqXHR, textStatus) {
-                console.log("Error getting info from wikipedia: " + textStatus);
-                contentString = 'Could not get wikipedia links for: ' + title;
-                currentLocation.wikiContent = contentString;
-
-            });
-        };
-
-        _setWikiLinks(currentLocation);
-
-        // add an event listener and use a closure to make sure it gets assigned to the right
-        // marker
-        currentMarker.addListener('click', (function(currentMarker) {
-            return function() {
-                vm.openInfoWindow(currentMarker);
-            };
-        })(currentLocation));
+        // populateInfoWindow(currentMarker, largeInfowindow);
+        currentMarker.addListener('click', function() {
+            populateInfoWindow(this, largeInfowindow);
+        });
 
     }
     // Extend the boundaries of the map for each marker
@@ -350,6 +220,95 @@ function offsetCenter(latlng, offsetx, offsety) {
 
 }
 
+//Function to populate the infowindow when marker is clicked
+function populateInfoWindow(marker, infowindow) {
+    // Check to make sure the infowindow is not already opened on this marker.
+    if (infowindow.marker != marker) {
+        // pan to the position of the marker
+        offsetCenter(marker.getPosition(), 0, -70);
+        // bounce the map marker
+        marker.setAnimation(google.maps.Animation.BOUNCE);
+        // set a timeout for the map marker to stop bouncing after 2 seconds
+        setTimeout(function() {
+            marker.setAnimation(google.maps.Animation.null);
+        }, 2000);
+        // Clear the infowindow content to give the streetview time to load.
+        infowindow.setContent('');
+        infowindow.marker = marker;
+        // Make sure the marker property is cleared if the infowindow is closed.
+        infowindow.addListener('closeclick', function() {
+            infowindow.marker = null;
+        });
+
+        var streetViewService = new google.maps.StreetViewService();
+        var radius = 500;
+        // In case the status is OK, which means the pano was found, compute the
+        // position of the streetview image, then calculate the heading, then get a
+        // panorama from that and set the options
+        var _getStreetView = function(data, status) {
+            if (status == google.maps.StreetViewStatus.OK) {
+                var nearStreetViewLocation = data.location.latLng;
+                var heading = google.maps.geometry.spherical.computeHeading(
+                    nearStreetViewLocation, marker.position);
+                var infoWindowContentString = '<div class="title">' + marker.title + '</div>';
+
+                //Wikipedia links
+                var wikiUrl = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' + marker.title +
+                    '&format=json&callback=wikiCallback';
+                // do an ajax request and wiki links for the city to display in infowindow
+
+                $.ajax({
+                        url: wikiUrl,
+                        dataType: "jsonp"
+                    })
+                    .done(function(response) {
+                        var articleList = response[1];
+                        infoWindowContentString += '<div class="wikipedia-container">' +
+                            '<h5>Relevant Wikipedia Links about this location </h5>' + '<ul class="wikipedia-links">';
+
+                        for (var i = 0; i < Math.min(articleList.length, 4); i++) {
+                            var articleStr = articleList[i];
+                            var url = 'http://en.wikipedia.org/wiki/' + articleStr;
+                            infoWindowContentString += '<li><a class="wikipedia-links text-center" target="_blank" href="' + url + '">' + articleStr + '</a></li>';
+                        }
+                        infoWindowContentString += '</ul></div>';
+                        console.log(infoWindowContentString);
+
+
+                    }).fail(function(jqXHR, textStatus) {
+                        console.log("Error getting info from wikipedia: " + textStatus);
+                        infoWindowContentString += '<div class="wikipedia-container">' +
+                            '<h5>Could not get wikipedia locations for' + marker.title + '</h5></div>';
+
+                    });
+
+                infoWindowContentString += '<div id="pano"></div>';
+                infowindow.setContent(infoWindowContentString);
+
+                var panoramaOptions = {
+                    position: nearStreetViewLocation,
+                    pov: {
+                        heading: heading,
+                        pitch: 30 // will have us looking slightly up at the building
+                    }
+                };
+                // if streetview image is found, create a panorama and put it in the div with id pano
+                // else put in error message
+                var panorama = new google.maps.StreetViewPanorama(
+                    document.getElementById('pano'), panoramaOptions);
+            } else {
+                infowindow.setContent('<div>' + marker.title + '</div>' +
+                    '<div>Request to Google places to get streetview failed :-/</div>');
+            }
+        };
+        // Use streetview service to get the closest streetview image within
+        // 50 meters of the markers position
+        // get streetview is the callback to getpanoramabylocation
+        streetViewService.getPanoramaByLocation(marker.position, radius, _getStreetView);
+        // Open the infowindow on the correct marker.
+        infowindow.open(map, marker);
+    }
+}
 
 // on google API error display error message
 function googleError() {

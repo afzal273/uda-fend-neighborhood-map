@@ -10,42 +10,33 @@
 </head>
 
 <body>
-    <main>
-        <div class="container" id="map">
-        </div>
-    </main>
-    <nav>
-        <div id="search-container">
-            <div id="search-nav">
-                <input id="searchBox" placeholder="Search…" data-bind="textInput: filter, valueUpdate: 'keydown'" autocomplete="off" />
-                <div id="scroller">
-                    <ul data-bind="foreach: locations">
-                        <div data-bind="visible: visible">
-                            <a href="#" class="location-detail">
-                                <li class="location-list" data-bind="click: $root.openInfoWindow">
-                                    <strong data-bind="text: title"></strong>
-                                    <p data-bind="text: addr1"></p>
-                                    <p data-bind="text: addr2"></p>
-                                </li>
-                            </a>
-                        </div>
-                    </ul>
-                </div>
+<main>
+    <div class="container" id="map">
+    </div>
+</main>
+<nav>
+    <div id="search-container">
+        <div id="search-nav">
+            <input id="searchBox" placeholder="Search…" data-bind="textInput: filter, valueUpdate: 'keydown'" autocomplete="off" />
+            <div id="scroller">
+                <ul data-bind="foreach: locations">
+                    <div data-bind="visible: visible">
+                        <a href="#" class="location-detail">
+                            <li class="location-list" data-bind="click: $root.listItemClick">
+                                <strong data-bind="text: title"></strong>
+                                <p data-bind="text: addr1"></p>
+                                <p data-bind="text: addr2"></p>
+                            </li>
+                        </a>
+                    </div>
+                </ul>
             </div>
         </div>
-        <div class="toggle-menu">
-            <img id="toggle-list" src="img/toggle-list.png" alt="Toggle list" data-bind="click: toggleList">
-        </div>
-    </nav>
-
-    <div id="info-window-template" style="display:none" data-bind="with: currentMapMarker">
-        <div class="title" data-bind="text: title"></div>
-            <div class="wikipedia-container" data-bind="html: wikiContent"></div>
-        <div id="pano" data-bind="visible: !streetViewError()"></div>
-        <div id="google-error" data-bind="visible: streetViewError">Request to Google Places to get street view failed</div>
-
     </div>
-
+    <div class="toggle-menu">
+        <img id="toggle-list" src="img/toggle-list.png" alt="Toggle list" data-bind="click: toggleList">
+    </div>
+</nav>
     <script src="js/vendor/jquery-2.2.4.min.js"></script>
     <script src="js/vendor/knockout-3.2.0.js"></script>
     <script src="js/neighborhood-map.js"></script>

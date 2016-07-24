@@ -117,13 +117,7 @@ a {
     #search-container {
         left: -280px;
     }
-
     .toggle-menu {
         left: 0;
     }
-}
-
-#google-error {
-    margin-top: 15px;
-    font-weight: bold;
 }
