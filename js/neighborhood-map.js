@@ -242,6 +242,8 @@ function populateInfoWindow(marker, infowindow) {
 
         var streetViewService = new google.maps.StreetViewService();
         var radius = 500;
+
+
         // In case the status is OK, which means the pano was found, compute the
         // position of the streetview image, then calculate the heading, then get a
         // panorama from that and set the options
@@ -250,40 +252,6 @@ function populateInfoWindow(marker, infowindow) {
                 var nearStreetViewLocation = data.location.latLng;
                 var heading = google.maps.geometry.spherical.computeHeading(
                     nearStreetViewLocation, marker.position);
-                var infoWindowContentString = '<div class="title">' + marker.title + '</div>';
-
-                //Wikipedia links
-                var wikiUrl = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' + marker.title +
-                    '&format=json&callback=wikiCallback';
-                // do an ajax request and wiki links for the city to display in infowindow
-
-                $.ajax({
-                        url: wikiUrl,
-                        dataType: "jsonp"
-                    })
-                    .done(function(response) {
-                        var articleList = response[1];
-                        infoWindowContentString += '<div class="wikipedia-container">' +
-                            '<h5>Relevant Wikipedia Links about this location </h5>' + '<ul class="wikipedia-links">';
-
-                        for (var i = 0; i < Math.min(articleList.length, 4); i++) {
-                            var articleStr = articleList[i];
-                            var url = 'http://en.wikipedia.org/wiki/' + articleStr;
-                            infoWindowContentString += '<li><a class="wikipedia-links text-center" target="_blank" href="' + url + '">' + articleStr + '</a></li>';
-                        }
-                        infoWindowContentString += '</ul></div>';
-                        console.log(infoWindowContentString);
-
-
-                    }).fail(function(jqXHR, textStatus) {
-                        console.log("Error getting info from wikipedia: " + textStatus);
-                        infoWindowContentString += '<div class="wikipedia-container">' +
-                            '<h5>Could not get wikipedia locations for' + marker.title + '</h5></div>';
-
-                    });
-
-                infoWindowContentString += '<div id="pano"></div>';
-                infowindow.setContent(infoWindowContentString);
 
                 var panoramaOptions = {
                     position: nearStreetViewLocation,
@@ -298,15 +266,53 @@ function populateInfoWindow(marker, infowindow) {
                     document.getElementById('pano'), panoramaOptions);
             } else {
                 infowindow.setContent('<div>' + marker.title + '</div>' +
-                    '<div>Request to Google places to get streetview failed :-/</div>');
+                    '<div>Request to Google places to get streetview failed</div>');
             }
         };
+
         // Use streetview service to get the closest streetview image within
         // 50 meters of the markers position
         // get streetview is the callback to getpanoramabylocation
-        streetViewService.getPanoramaByLocation(marker.position, radius, _getStreetView);
-        // Open the infowindow on the correct marker.
-        infowindow.open(map, marker);
+        var _populateStreetView = function () {
+            streetViewService.getPanoramaByLocation(marker.position, radius, _getStreetView);
+            // Open the infowindow on the correct marker.
+            infowindow.open(map, marker);
+        };
+
+        var infoWindowContentString = '<div class="title">' + marker.title + '</div>';
+
+        // do an ajax request and wiki links for the city to display in infowindow
+        //Wikipedia links
+
+        var wikiUrl = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' + marker.title +
+            '&format=json&callback=wikiCallback';
+        $.ajax({
+            url: wikiUrl,
+            dataType: "jsonp"
+        })
+        .done(function(response) {
+            var articleList = response[1];
+            infoWindowContentString += '<div class="wikipedia-container">' +
+                '<h5>Relevant Wikipedia Links about this location </h5>' + '<ul class="wikipedia-links">';
+
+            for (var i = 0; i < Math.min(articleList.length, 4); i++) {
+                var articleStr = articleList[i];
+                var url = 'http://en.wikipedia.org/wiki/' + articleStr;
+                infoWindowContentString += '<li><a class="wikipedia-links text-center" target="_blank" href="' + url + '">' + articleStr + '</a></li>';
+            }
+            infoWindowContentString += '</ul></div>';
+            infoWindowContentString += '<div id="pano"></div>';
+            infowindow.setContent(infoWindowContentString);
+            _populateStreetView();
+
+        }).fail(function(jqXHR, textStatus) {
+            console.log("Error getting info from wikipedia: " + textStatus);
+            infoWindowContentString += '<div class="wikipedia-container">' +
+                '<h5>Could not get wikipedia locations for' + marker.title + '</h5></div>';
+            infoWindowContentString += '<div id="pano"></div>';
+            infowindow.setContent(infoWindowContentString);
+            _populateStreetView();
+        });
     }
 }
 
